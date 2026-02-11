@@ -41,6 +41,7 @@ struct OverlayView: View {
                             .shadow(color: eventColor.opacity(0.5), radius: 10, x: 0, y: 0)
                     }
                     .buttonStyle(.plain)
+                    .focusEffectDisabled()
                 } else {
                      Button(action: {
                         // Close the overlay
@@ -56,6 +57,7 @@ struct OverlayView: View {
                             .cornerRadius(12)
                     }
                     .buttonStyle(.plain)
+                    .focusEffectDisabled()
                 }
             }
             .padding(50)

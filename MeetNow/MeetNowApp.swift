@@ -11,6 +11,7 @@ struct MeetNowApp: App {
         MenuBarExtra("MeetNow", systemImage: "calendar") {
             MenuBarView(eventManager: eventManager)
         }
+        .menuBarExtraStyle(.window)
         
 
     }

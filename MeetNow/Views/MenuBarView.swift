@@ -6,26 +6,52 @@ struct MenuBarView: View {
     
 
     
+    private var nowEvents: [EKEvent] {
+        let now = Date()
+        return eventManager.upcomingEvents.filter { $0.startDate <= now && $0.endDate >= now }
+    }
+    
+    private var futureEvents: [EKEvent] {
+        let now = Date()
+        return eventManager.upcomingEvents.filter { $0.startDate > now }
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("Upcoming Events")
-                .font(.headline)
-                .padding(.horizontal)
-                .padding(.top, 10)
-                .padding(.bottom, 5)
-            
-            Divider()
-            
             if eventManager.upcomingEvents.isEmpty {
                 Text("No upcoming events today")
                     .foregroundColor(.secondary)
                     .padding()
             } else {
-                ForEach(eventManager.upcomingEvents, id: \.eventIdentifier) { event in
-                    EventRow(event: event)
-                    Divider()
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if !nowEvents.isEmpty {
+                            SectionHeader(title: "Now")
+                            
+                            ForEach(nowEvents, id: \.eventIdentifier) { event in
+                                EventRow(event: event)
+                                if event != nowEvents.last || !futureEvents.isEmpty {
+                                    Divider().padding(.leading, 16)
+                                }
+                            }
+                        }
+                        
+                        if !futureEvents.isEmpty {
+                            SectionHeader(title: "Upcoming Events")
+                            
+                            ForEach(futureEvents, id: \.eventIdentifier) { event in
+                                EventRow(event: event)
+                                if event != futureEvents.last {
+                                    Divider().padding(.leading, 16)
+                                }
+                            }
+                        }
+                    }
+                    .padding(.vertical, 4)
                 }
             }
+            
+            Divider()
             
             HStack {
                 Spacer()
@@ -33,54 +59,82 @@ struct MenuBarView: View {
                     SettingsWindowController.shared.show()
                 }
                 .keyboardShortcut(",")
+                .focusEffectDisabled()
                 
                 Button("Quit") {
                     NSApplication.shared.terminate(nil)
                 }
                 .keyboardShortcut("q")
+                .focusEffectDisabled()
             }
             .padding()
         }
-        .frame(minWidth: 250)
+        .frame(minWidth: 320, maxHeight: 400)
+    }
+}
+
+struct SectionHeader: View {
+    let title: String
+    
+    var body: some View {
+        Text(title.uppercased())
+            .font(.system(size: 11, weight: .bold))
+            .foregroundColor(.secondary)
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            .padding(.bottom, 2)
     }
 }
 
 struct EventRow: View {
     let event: EventKit.EKEvent
     
+    private let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter
+    }()
+    
     var isNow: Bool {
-        event.startDate < Date() && event.endDate > Date()
+        let now = Date()
+        return event.startDate <= now && event.endDate >= now
     }
     
     var body: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading) {
-                if isNow {
-                    Text("NOW")
-                        .font(.caption2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
-                } else {
-                    Text(event.startDate, style: .time)
+        HStack(alignment: .center, spacing: 12) {
+            // Time Section
+            VStack(alignment: .center) {
+                Text("\(timeFormatter.string(from: event.startDate)) - \(timeFormatter.string(from: event.endDate))")
+                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                    .foregroundColor(isNow ? .white : .primary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(isNow ? Color.green : Color.clear)
+                    )
+            }
+            .frame(width: 110)
+            
+            // Info Section
+            VStack(alignment: .leading, spacing: 0) {
+                Text(event.title)
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .lineLimit(1)
+                
+                if let location = event.location, !location.isEmpty {
+                    Text(location)
                         .font(.caption)
                         .foregroundColor(.secondary)
+                        .lineLimit(1)
                 }
             }
-            .frame(width: 50, alignment: .leading)
             
-            VStack(alignment: .leading) {
-                Text(event.title)
-                    .fontWeight(isNow ? .semibold : .regular)
-                    .lineLimit(2)
-                
-                Text(event.location ?? "")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-            }
+            Spacer()
         }
-        .padding(.horizontal)
-        .padding(.vertical, 8)
-        .background(isNow ? Color.green.opacity(0.1) : Color.clear)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
+        .contentShape(Rectangle())
     }
 }
