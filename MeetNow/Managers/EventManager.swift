@@ -8,10 +8,12 @@ class EventManager: ObservableObject {
     @Published var upcomingEvents: [EKEvent] = []
     
     var nextEvent: EKEvent? {
-        return upcomingEvents.first
+        upcomingEvents.first
     }
     
     @Published var hasAccess: Bool = false
+    
+    private var cancellables = Set<AnyCancellable>()
     
     init() {
         requestAccess()
@@ -30,22 +32,21 @@ class EventManager: ObservableObject {
     }
     
     private func observeStoreChanges() {
-        NotificationCenter.default.addObserver(self, selector: #selector(storeChanged), name: .EKEventStoreChanged, object: store)
-    }
-    
-    @objc func storeChanged() {
-        fetchEvents()
+        NotificationCenter.default.publisher(for: .EKEventStoreChanged, object: store)
+            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.fetchEvents()
+            }
+            .store(in: &cancellables)
     }
     
     func fetchEvents() {
-        // Look for events in the next 24 hours
         let now = Date()
         guard let end = Calendar.current.date(byAdding: .day, value: 1, to: now) else { return }
         
         let predicate = store.predicateForEvents(withStart: now, end: end, calendars: nil)
         let events = store.events(matching: predicate)
         
-        // Filter for events that haven't ended yet and are not all-day (unless requested)
         let upcoming = events
             .filter { !$0.isAllDay && $0.endDate > now }
             .sorted { $0.startDate < $1.startDate }

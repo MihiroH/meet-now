@@ -5,35 +5,36 @@ import Combine
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var overlayWindow: OverlayWindow!
     private var cancellables = Set<AnyCancellable>()
+    private var dismissedEventIdentifiers = Set<String>()
+    private var currentlyShownEventID: String?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         
-        // Register default defaults
         UserDefaults.standard.register(defaults: ["reminderOffset": 5.0])
         
         setupOverlayWindow()
         
         NotificationCenter.default.addObserver(self, selector: #selector(closeOverlay), name: .closeOverlay, object: nil)
         
-        // Timer to check for overlay trigger
-        Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
-            if let event = EventManager.shared.nextEvent {
-                self?.checkShouldShow(event)
+        // Resize overlay when display configuration changes
+        NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
+            .sink { [weak self] _ in
+                if let screen = NSScreen.main {
+                    self?.overlayWindow.setFrame(screen.visibleFrame, display: true)
+                }
             }
-        }
+            .store(in: &cancellables)
     }
     
-    private var dismissedEventIdentifiers = Set<String>()
-    
-    @objc func closeOverlay() {
+    @objc private func closeOverlay() {
         if let eventID = EventManager.shared.nextEvent?.eventIdentifier {
             dismissedEventIdentifiers.insert(eventID)
         }
         overlayWindow.orderOut(nil)
     }
     
-    func setupOverlayWindow() {
+    private func setupOverlayWindow() {
         overlayWindow = OverlayWindow(
             contentRect: NSRect(x: 0, y: 0, width: 800, height: 600),
             styleMask: [.borderless, .fullSizeContentView],
@@ -50,8 +51,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             overlayWindow.setFrame(screen.visibleFrame, display: true)
         }
         
+        // Single Combine pipeline drives all overlay presentation logic
         EventManager.shared.$upcomingEvents
-            .map { $0.first }
+            .map { [weak self] events -> EKEvent? in
+                // Prune dismissed IDs for events that are no longer in today's list
+                let currentIDs = Set(events.compactMap(\.eventIdentifier))
+                self?.dismissedEventIdentifiers.formIntersection(currentIDs)
+                return events.first
+            }
             .sink { [weak self] event in
                 if let event = event {
                     self?.checkShouldShow(event)
@@ -62,19 +69,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             .store(in: &cancellables)
     }
     
-    private var currentlyShownEventID: String?
-    
-    func checkShouldShow(_ event: EventKit.EKEvent) {
-        guard !dismissedEventIdentifiers.contains(event.eventIdentifier) else { 
+    private func checkShouldShow(_ event: EventKit.EKEvent) {
+        guard !dismissedEventIdentifiers.contains(event.eventIdentifier) else {
             if currentlyShownEventID == event.eventIdentifier {
                 overlayWindow.orderOut(nil)
                 currentlyShownEventID = nil
             }
-            return 
+            return
         }
         
-        guard let start = event.startDate else { return }
-        let timeUntilStart = start.timeIntervalSinceNow
+        let timeUntilStart = event.startDate.timeIntervalSinceNow
         
         let offsetMinutes = UserDefaults.standard.double(forKey: "reminderOffset")
         let offsetSeconds = offsetMinutes * 60
