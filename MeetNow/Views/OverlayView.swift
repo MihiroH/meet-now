@@ -9,11 +9,15 @@ struct OverlayView: View {
     @State private var showTime = false
     @State private var showActions = false
     
-    private var timeRangeString: String {
-        guard let start = event.startDate else { return "" }
+    private static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
-        return "\(formatter.string(from: start)) - \(formatter.string(from: event.endDate))"
+        return formatter
+    }()
+    
+    private var timeRangeString: String {
+        let formatter = Self.timeFormatter
+        return "\(formatter.string(from: event.startDate)) - \(formatter.string(from: event.endDate))"
     }
 
     private var meetingURL: URL? {

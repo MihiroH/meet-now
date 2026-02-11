@@ -40,7 +40,7 @@ class EventManager: ObservableObject {
     func fetchEvents() {
         // Look for events in the next 24 hours
         let now = Date()
-        let end = Calendar.current.date(byAdding: .day, value: 1, to: now)!
+        guard let end = Calendar.current.date(byAdding: .day, value: 1, to: now) else { return }
         
         let predicate = store.predicateForEvents(withStart: now, end: end, calendars: nil)
         let events = store.events(matching: predicate)

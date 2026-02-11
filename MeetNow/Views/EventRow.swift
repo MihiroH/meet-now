@@ -5,7 +5,7 @@ struct EventRow: View {
     let event: EventKit.EKEvent
     @Environment(\.dismiss) private var dismiss
     
-    private let timeFormatter: DateFormatter = {
+    private static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         return formatter
@@ -20,7 +20,7 @@ struct EventRow: View {
         HStack(alignment: .center, spacing: 12) {
             // Time Section
             VStack(alignment: .center) {
-                Text("\(timeFormatter.string(from: event.startDate)) - \(timeFormatter.string(from: event.endDate))")
+                Text("\(Self.timeFormatter.string(from: event.startDate)) - \(Self.timeFormatter.string(from: event.endDate))")
                     .font(.system(size: 11, weight: .semibold, design: .monospaced))
                     .foregroundColor(isNow ? .white : .primary)
                     .padding(.horizontal, 8)
