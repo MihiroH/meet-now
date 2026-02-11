@@ -5,7 +5,12 @@ import Combine
 class EventManager: ObservableObject {
     static let shared = EventManager()
     private let store = EKEventStore()
-    @Published var nextEvent: EKEvent?
+    @Published var upcomingEvents: [EKEvent] = []
+    
+    var nextEvent: EKEvent? {
+        return upcomingEvents.first
+    }
+    
     @Published var hasAccess: Bool = false
     
     init() {
@@ -25,10 +30,12 @@ class EventManager: ObservableObject {
     }
     
     func startTimer() {
-        // Check every minute
-        Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            self?.fetchEvents()
-        }
+        // Observe external changes to the calendar database
+        NotificationCenter.default.addObserver(self, selector: #selector(storeChanged), name: .EKEventStoreChanged, object: store)
+    }
+    
+    @objc func storeChanged() {
+        fetchEvents()
     }
     
     func fetchEvents() {
@@ -45,7 +52,7 @@ class EventManager: ObservableObject {
             .sorted { $0.startDate < $1.startDate }
         
         DispatchQueue.main.async {
-            self.nextEvent = upcoming.first
+            self.upcomingEvents = upcoming
         }
     }
 }

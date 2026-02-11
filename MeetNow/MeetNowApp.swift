@@ -15,24 +15,35 @@ struct MeetNowApp: App {
 }
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-    var overlayWindow: NSWindow!
-    var eventManager = EventManager() // We might need to share this, but for now duplicate or single source of truth?
+    var overlayWindow: OverlayWindow!
+    // var eventManager = EventManager() // Removed redundant instance
     // Better: Helper to manage window
     private var cancellables = Set<AnyCancellable>()
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupOverlayWindow()
         
-        // Listen to EventManager updates
-        // Note: In a real app we'd share the instance properly. 
-        // For simplicity here, let's just make a new one or use a Singleton if needed.
-        // But the App struct creates one. We need access to THAT one or pass it down.
-        // It's tricky with Adaptor. 
-        // Alternative: Make EventManager a singleton `shared`.
+        NotificationCenter.default.addObserver(self, selector: #selector(closeOverlay), name: Notification.Name("CloseOverlay"), object: nil)
+        
+        // Timer to check for overlay trigger
+        Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
+            if let event = EventManager.shared.nextEvent {
+                self?.checkShouldShow(event)
+            }
+        }
+    }
+    
+    var dismissedEventIdentifiers = Set<String>()
+    
+    @objc func closeOverlay() {
+        if let eventID = EventManager.shared.nextEvent?.eventIdentifier {
+            dismissedEventIdentifiers.insert(eventID)
+        }
+        overlayWindow.orderOut(nil)
     }
     
     func setupOverlayWindow() {
-        overlayWindow = NSWindow(
+        overlayWindow = OverlayWindow(
             contentRect: NSRect(x: 0, y: 0, width: 800, height: 600), // Size doesn't matter much if fullscreen
             styleMask: [.borderless, .fullSizeContentView],
             backing: .buffered,
@@ -51,7 +62,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         // We need to access the EventManager to know when to show the window
         // Let's use a Singleton for EventManager to simplify communication
-        EventManager.shared.$nextEvent
+        EventManager.shared.$upcomingEvents
+            .map { $0.first }
             .sink { [weak self] event in
                 if let event = event {
                     // Logic: Show if starting soon (e.g. < 2 mins)
@@ -66,6 +78,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func checkShouldShow(_ event: EventKit.EKEvent) {
+        guard !dismissedEventIdentifiers.contains(event.eventIdentifier) else { return }
+        
         guard let start = event.startDate else { return }
         let timeUntilStart = start.timeIntervalSinceNow
         
