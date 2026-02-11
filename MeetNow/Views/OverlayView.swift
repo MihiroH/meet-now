@@ -17,7 +17,7 @@ struct OverlayView: View {
     }
 
     private var meetingURL: URL? {
-        MeetingLinkExtractor.getMeetingLink(for: event)
+        MeetingLinkExtractor.meetingLink(for: event)
     }
     
     var body: some View {
@@ -82,7 +82,7 @@ struct OverlayView: View {
                     if let url = meetingURL {
                         Button(action: { 
                             NSWorkspace.shared.open(url) 
-                            NotificationCenter.default.post(name: Notification.Name("CloseOverlay"), object: nil)
+                            NotificationCenter.default.post(name: .closeOverlay, object: nil)
                         }) {
                             HStack(spacing: 12) {
                                 Text("Join Meeting")
@@ -101,7 +101,7 @@ struct OverlayView: View {
                     
                     if meetingURL == nil {
                         Button(action: {
-                            NotificationCenter.default.post(name: Notification.Name("CloseOverlay"), object: nil)
+                            NotificationCenter.default.post(name: .closeOverlay, object: nil)
                         }) {
                             Text("Dismiss")
                                 .font(.system(size: 18, weight: .bold))
@@ -116,7 +116,7 @@ struct OverlayView: View {
                         .focusEffectDisabled()
                     } else {
                         Button(action: {
-                            NotificationCenter.default.post(name: Notification.Name("CloseOverlay"), object: nil)
+                            NotificationCenter.default.post(name: .closeOverlay, object: nil)
                         }) {
                             Text("Dismiss")
                                 .font(.system(size: 14, weight: .bold))

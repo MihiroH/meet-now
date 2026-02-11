@@ -3,8 +3,7 @@ import EventKit
 import Combine
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-    var overlayWindow: OverlayWindow!
-    // Better: Helper to manage window
+    private var overlayWindow: OverlayWindow!
     private var cancellables = Set<AnyCancellable>()
     
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -15,7 +14,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         setupOverlayWindow()
         
-        NotificationCenter.default.addObserver(self, selector: #selector(closeOverlay), name: Notification.Name("CloseOverlay"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(closeOverlay), name: .closeOverlay, object: nil)
         
         // Timer to check for overlay trigger
         Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in

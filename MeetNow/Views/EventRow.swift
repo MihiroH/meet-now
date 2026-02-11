@@ -49,7 +49,7 @@ struct EventRow: View {
             .lineLimit(1)
             
             // Link Indicator at Right Edge
-            if let url = MeetingLinkExtractor.getMeetingLink(for: event) {
+            if let url = MeetingLinkExtractor.meetingLink(for: event) {
                 Image(systemName: "video.fill")
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
@@ -69,7 +69,7 @@ struct EventRow: View {
         .padding(.vertical, 6)
         .contentShape(Rectangle())
         .onTapGesture {
-            if let url = MeetingLinkExtractor.getMeetingLink(for: event) {
+            if let url = MeetingLinkExtractor.meetingLink(for: event) {
                 NSWorkspace.shared.open(url)
                 dismiss()
             }

@@ -23,14 +23,13 @@ class EventManager: ObservableObject {
                 self?.hasAccess = granted
                 if granted {
                     self?.fetchEvents()
-                    self?.startTimer()
+                    self?.observeStoreChanges()
                 }
             }
         }
     }
     
-    func startTimer() {
-        // Observe external changes to the calendar database
+    private func observeStoreChanges() {
         NotificationCenter.default.addObserver(self, selector: #selector(storeChanged), name: .EKEventStoreChanged, object: store)
     }
     
