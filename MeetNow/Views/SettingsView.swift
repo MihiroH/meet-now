@@ -26,9 +26,6 @@ struct SettingsView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Reminder Time")
                                 .font(.headline)
-                            Text("When should the overlay appear?")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
                         }
                     }
                 }
@@ -38,7 +35,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 400, height: 200)
+        .frame(width: 400, height: 150)
     }
 }
 
