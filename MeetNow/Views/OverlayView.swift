@@ -26,22 +26,37 @@ struct OverlayView: View {
                         .foregroundColor(.white.opacity(0.8))
                 }
                 
-                Button(action: {
-                    if let url = event.url {
+                if let url = MeetingLinkExtractor.getMeetingLink(for: event) {
+                    Button(action: {
                         NSWorkspace.shared.open(url)
+                    }) {
+                        Text("Join Meeting")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .padding(.horizontal, 30)
+                            .padding(.vertical, 15)
+                            .background(eventColor)
+                            .foregroundColor(.white) // Might need contrast check, but white is usually safe for calendar colors
+                            .cornerRadius(12)
+                            .shadow(color: eventColor.opacity(0.5), radius: 10, x: 0, y: 0)
                     }
-                }) {
-                    Text("Join Meeting")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .padding(.horizontal, 30)
-                        .padding(.vertical, 15)
-                        .background(eventColor)
-                        .foregroundColor(.white) // Might need contrast check, but white is usually safe for calendar colors
-                        .cornerRadius(12)
-                        .shadow(color: eventColor.opacity(0.5), radius: 10, x: 0, y: 0)
+                    .buttonStyle(.plain)
+                } else {
+                     Button(action: {
+                        // Close the overlay
+                        NotificationCenter.default.post(name: Notification.Name("CloseOverlay"), object: nil)
+                    }) {
+                        Text("Close")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .padding(.horizontal, 30)
+                            .padding(.vertical, 15)
+                            .background(Color.gray.opacity(0.5))
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
             .padding(50)
         }
