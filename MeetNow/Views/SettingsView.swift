@@ -4,20 +4,6 @@ struct SettingsView: View {
     @AppStorage("reminderOffset") private var reminderOffset: Double = 5.0
     
     var body: some View {
-        TabView {
-            GeneralSettingsView(reminderOffset: $reminderOffset)
-                .tabItem {
-                    Label("General", systemImage: "gearshape")
-                }
-        }
-        .frame(width: 450, height: 250)
-    }
-}
-
-struct GeneralSettingsView: View {
-    @Binding var reminderOffset: Double
-    
-    var body: some View {
         Form {
             Section {
                 LabeledContent {
@@ -52,6 +38,7 @@ struct GeneralSettingsView: View {
             }
         }
         .formStyle(.grouped)
+        .frame(width: 400, height: 200)
     }
 }
 
