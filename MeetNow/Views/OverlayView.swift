@@ -15,6 +15,10 @@ struct OverlayView: View {
         formatter.dateFormat = "HH:mm"
         return "\(formatter.string(from: start)) - \(formatter.string(from: event.endDate))"
     }
+
+    private var meetingURL: URL? {
+        MeetingLinkExtractor.getMeetingLink(for: event)
+    }
     
     var body: some View {
         let eventColor = Color.from(cgColor: event.calendar.cgColor)
@@ -70,19 +74,18 @@ struct OverlayView: View {
                     .opacity(showTime ? 1 : 0)
                     .offset(y: showTime ? 0 : 10)
                 
-                Spacer().frame(height: 80)
+                // Adaptive Spacing: Tighter if no join button
+                Spacer().frame(height: meetingURL == nil ? 48 : 80)
                 
                 // 4. Focused Action Blocks
-                VStack(spacing: 32) {
-                    if let url = MeetingLinkExtractor.getMeetingLink(for: event) {
+                VStack(spacing: meetingURL == nil ? 0 : 32) {
+                    if let url = meetingURL {
                         Button(action: { 
                             NSWorkspace.shared.open(url) 
                             NotificationCenter.default.post(name: Notification.Name("CloseOverlay"), object: nil)
                         }) {
                             HStack(spacing: 12) {
                                 Text("Join Meeting")
-                                Image(systemName: "arrow.right")
-                                    .font(.system(size: 18, weight: .bold))
                             }
                             .font(.system(size: 20, weight: .bold))
                             .padding(.horizontal, 50)
@@ -96,16 +99,33 @@ struct OverlayView: View {
                         .focusEffectDisabled()
                     }
                     
-                    Button(action: {
-                        NotificationCenter.default.post(name: Notification.Name("CloseOverlay"), object: nil)
-                    }) {
-                        Text("Dismiss")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.white.opacity(0.25))
-                            .kerning(1)
+                    if meetingURL == nil {
+                        Button(action: {
+                            NotificationCenter.default.post(name: Notification.Name("CloseOverlay"), object: nil)
+                        }) {
+                            Text("Dismiss")
+                                .font(.system(size: 18, weight: .bold))
+                                .padding(.horizontal, 40)
+                                .padding(.vertical, 18)
+                                .background(Color.white.opacity(0.05))
+                                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.white.opacity(0.1), lineWidth: 1))
+                                .foregroundColor(.white.opacity(0.8))
+                                .cornerRadius(8)
+                        }
+                        .buttonStyle(ProButtonStyle())
+                        .focusEffectDisabled()
+                    } else {
+                        Button(action: {
+                            NotificationCenter.default.post(name: Notification.Name("CloseOverlay"), object: nil)
+                        }) {
+                            Text("Dismiss")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.white.opacity(0.25))
+                                .kerning(1)
+                        }
+                        .buttonStyle(.plain)
+                        .focusEffectDisabled()
                     }
-                    .buttonStyle(.plain)
-                    .focusEffectDisabled()
                 }
                 .opacity(showActions ? 1 : 0)
                 .offset(y: showActions ? 0 : 30)
