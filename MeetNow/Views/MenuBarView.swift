@@ -129,9 +129,8 @@ struct EventRow: View {
                         .lineLimit(1)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .lineLimit(1)
-            
-            Spacer()
             
             // Link Indicator at Right Edge
             if let url = MeetingLinkExtractor.getMeetingLink(for: event) {
