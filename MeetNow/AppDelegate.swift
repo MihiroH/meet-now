@@ -90,7 +90,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 let contentView = OverlayView(event: event)
                 overlayWindow.contentView = NSHostingView(rootView: contentView)
                 overlayWindow.makeKeyAndOrderFront(nil)
-                NSApp.activate(ignoringOtherApps: true)
+                NSApp.activate()
                 currentlyShownEventID = event.eventIdentifier
             }
         } else {
