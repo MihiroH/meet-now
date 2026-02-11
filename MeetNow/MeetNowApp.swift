@@ -12,9 +12,7 @@ struct MeetNowApp: App {
             MenuBarView(eventManager: eventManager)
         }
         
-        Settings {
-            SettingsView()
-        }
+
     }
 }
 
@@ -25,6 +23,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var cancellables = Set<AnyCancellable>()
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.setActivationPolicy(.accessory)
+        
         // Register default defaults
         UserDefaults.standard.register(defaults: ["reminderOffset": 5.0])
         
@@ -104,6 +104,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             overlayWindow.orderOut(nil)
         }
+    }
+}
+
+class SettingsWindowController: NSObject {
+    static let shared = SettingsWindowController()
+    private var window: NSWindow?
+    
+    func show() {
+        if window == nil {
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 400, height: 200),
+                styleMask: [.titled, .closable, .miniaturizable],
+                backing: .buffered,
+                defer: false
+            )
+            window.center()
+            window.level = .floating
+            window.title = "Preferences"
+            window.contentView = NSHostingView(rootView: SettingsView())
+            window.isReleasedWhenClosed = false
+            self.window = window
+        }
+        
+        NSApp.activate(ignoringOtherApps: true)
+        window?.makeKeyAndOrderFront(nil)
     }
 }
 

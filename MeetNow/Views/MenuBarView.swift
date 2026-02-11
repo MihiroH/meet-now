@@ -4,6 +4,8 @@ import EventKit
 struct MenuBarView: View {
     @ObservedObject var eventManager: EventManager
     
+
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Upcoming Events")
@@ -28,8 +30,7 @@ struct MenuBarView: View {
             HStack {
                 Spacer()
                 Button("Preferences...") {
-                    NSApp.activate(ignoringOtherApps: true)
-                    NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                    SettingsWindowController.shared.show()
                 }
                 .keyboardShortcut(",")
                 
