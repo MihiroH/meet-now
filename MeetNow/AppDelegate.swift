@@ -28,10 +28,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc private func closeOverlay() {
-        if let eventID = EventManager.shared.nextEvent?.eventIdentifier {
+        if let eventID = currentlyShownEventID {
             dismissedEventIdentifiers.insert(eventID)
         }
         overlayWindow.orderOut(nil)
+        currentlyShownEventID = nil
     }
     
     private func setupOverlayWindow() {
