@@ -28,23 +28,32 @@ final class MeetingLinkExtractorTests: XCTestCase {
         XCTAssertEqual(link?.absoluteString, "https://teams.microsoft.com/l/meetup-join/abc123percent20sign")
     }
     
-    func testPreferDedicatedURLLink() {
+    func testPreferRegexMatchOverGenericURL() {
         let event = EKEvent(eventStore: EKEventStore())
-        event.url = URL(string: "https://dedicated.url/123")
-        event.notes = "https://meet.google.com/abc-defg-hij"
+        event.url = URL(string: "https://generic.link/123")
+        event.notes = "Actual meeting: https://meet.google.com/abc-defg-hij"
         
         let link = MeetingLinkExtractor.meetingLink(for: event)
-        // Should prefer dedicated URL field first
-        XCTAssertEqual(link?.absoluteString, "https://dedicated.url/123")
+        // Should prefer regex match in notes over generic URL field
+        XCTAssertEqual(link?.absoluteString, "https://meet.google.com/abc-defg-hij")
     }
     
-    func testCheckDedicatedURLFieldFirst() {
+    func testFallbackToEventURLWhenNoRegexMatch() {
         let event = EKEvent(eventStore: EKEventStore())
         event.url = URL(string: "https://generic.link/456")
         event.notes = "No meeting link here"
         
         let link = MeetingLinkExtractor.meetingLink(for: event)
+        // Should fallback to event.url even if it doesn't match regex
         XCTAssertEqual(link?.absoluteString, "https://generic.link/456")
+    }
+    
+    func testExtractFromTitle() {
+        let event = EKEvent(eventStore: EKEventStore())
+        event.title = "Meeting: https://meet.google.com/abc-defg-hij"
+        
+        let link = MeetingLinkExtractor.meetingLink(for: event)
+        XCTAssertEqual(link?.absoluteString, "https://meet.google.com/abc-defg-hij")
     }
     
     func testReturnNilWhenNoLinkFound() {

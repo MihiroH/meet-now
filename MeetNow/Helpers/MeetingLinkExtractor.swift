@@ -3,14 +3,21 @@ import EventKit
 
 struct MeetingLinkExtractor {
     static func meetingLink(for event: EKEvent) -> URL? {
-        // Check the dedicated URL field first
-        if let url = event.url {
+        // 1. Attempt regex-based extraction from Title, Notes, and Location first.
+        // This takes priority in case the URL field contains a non-meeting link.
+        let combinedText = "\(event.title ?? "")\n\(event.notes ?? "")\n\(event.location ?? "")"
+        if let extracted = extractURL(from: combinedText) {
+            return extracted
+        }
+        
+        // 2. Fall back to dedicated URL detection.
+        // If the URL field is present and matches a meeting service, return it.
+        if let url = event.url, extractURL(from: url.absoluteString) != nil {
             return url
         }
         
-        // Check Notes and Location for meeting service URLs
-        let combinedText = (event.notes ?? "") + "\n" + (event.location ?? "")
-        return extractURL(from: combinedText)
+        // 3. Final fallback: return the URL field if present, even if it didn't match regex.
+        return event.url
     }
     
     private static let meetingPatterns: [Regex<AnyRegexOutput>] = {
