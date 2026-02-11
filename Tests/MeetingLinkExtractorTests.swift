@@ -38,7 +38,7 @@ final class MeetingLinkExtractorTests: XCTestCase {
         XCTAssertEqual(link?.absoluteString, "https://dedicated.url/123")
     }
     
-    func testFallbackToEventURLWhenNoRegexMatch() {
+    func testCheckDedicatedURLFieldFirst() {
         let event = EKEvent(eventStore: EKEventStore())
         event.url = URL(string: "https://generic.link/456")
         event.notes = "No meeting link here"

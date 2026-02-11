@@ -10,7 +10,7 @@ struct MeetingLinkExtractor {
         
         // Check Notes and Location for meeting service URLs
         let combinedText = (event.notes ?? "") + "\n" + (event.location ?? "")
-        return extractURL(from: combinedText) ?? event.url
+        return extractURL(from: combinedText)
     }
     
     private static let meetingPatterns: [Regex<AnyRegexOutput>] = {
