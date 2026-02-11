@@ -29,8 +29,8 @@
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/MihiroH/MeetNow.git
-   cd MeetNow
+   git clone https://github.com/MihiroH/meet-now.git
+   cd meet-now
    ```
 2. Build and run the SPM package:
    ```bash
