@@ -85,8 +85,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             .store(in: &cancellables)
     }
     
+    var currentlyShownEventID: String?
+    
     func checkShouldShow(_ event: EventKit.EKEvent) {
-        guard !dismissedEventIdentifiers.contains(event.eventIdentifier) else { return }
+        guard !dismissedEventIdentifiers.contains(event.eventIdentifier) else { 
+            if currentlyShownEventID == event.eventIdentifier {
+                overlayWindow.orderOut(nil)
+                currentlyShownEventID = nil
+            }
+            return 
+        }
         
         guard let start = event.startDate else { return }
         let timeUntilStart = start.timeIntervalSinceNow
@@ -98,12 +106,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Show if starts in less than X minutes and hasn't ended
         let duration = event.endDate.timeIntervalSince(event.startDate)
         if timeUntilStart < offsetSeconds && timeUntilStart > -duration {
-            let contentView = OverlayView(event: event)
-            overlayWindow.contentView = NSHostingView(rootView: contentView)
-            overlayWindow.makeKeyAndOrderFront(nil)
-            NSApp.activate(ignoringOtherApps: true)
+            if !overlayWindow.isVisible || currentlyShownEventID != event.eventIdentifier {
+                let contentView = OverlayView(event: event)
+                overlayWindow.contentView = NSHostingView(rootView: contentView)
+                overlayWindow.makeKeyAndOrderFront(nil)
+                NSApp.activate(ignoringOtherApps: true)
+                currentlyShownEventID = event.eventIdentifier
+            }
         } else {
-            overlayWindow.orderOut(nil)
+            if overlayWindow.isVisible && currentlyShownEventID == event.eventIdentifier {
+                overlayWindow.orderOut(nil)
+                currentlyShownEventID = nil
+            }
         }
     }
 }
