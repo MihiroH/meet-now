@@ -9,6 +9,13 @@ struct OverlayView: View {
     @State private var showTime = false
     @State private var showActions = false
     
+    private var timeRangeString: String {
+        guard let start = event.startDate else { return "" }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return "\(formatter.string(from: start)) - \(formatter.string(from: event.endDate))"
+    }
+    
     var body: some View {
         let eventColor = Color.from(cgColor: event.calendar.cgColor)
         let darkBackground = Color(white: 0.05) // Midnight charcoal
@@ -56,14 +63,12 @@ struct OverlayView: View {
                 
                 Spacer().frame(height: 24)
                 
-                // 3. Simple Time String
-                if let startDate = event.startDate {
-                    Text(startDate, style: .time)
-                        .font(.system(size: 24, weight: .medium, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.4))
-                        .opacity(showTime ? 1 : 0)
-                        .offset(y: showTime ? 0 : 10)
-                }
+                // 3. Simple Time Range
+                Text(timeRangeString)
+                    .font(.system(size: 24, weight: .medium, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.4))
+                    .opacity(showTime ? 1 : 0)
+                    .offset(y: showTime ? 0 : 10)
                 
                 Spacer().frame(height: 80)
                 
