@@ -20,7 +20,7 @@ class SettingsWindowController: NSObject {
             self.window = window
         }
         
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.activate()
         window?.makeKeyAndOrderFront(nil)
     }
 }
