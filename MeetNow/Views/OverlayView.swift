@@ -70,7 +70,10 @@ struct OverlayView: View {
                 // 4. Focused Action Blocks
                 VStack(spacing: 32) {
                     if let url = MeetingLinkExtractor.getMeetingLink(for: event) {
-                        Button(action: { NSWorkspace.shared.open(url) }) {
+                        Button(action: { 
+                            NSWorkspace.shared.open(url) 
+                            NotificationCenter.default.post(name: Notification.Name("CloseOverlay"), object: nil)
+                        }) {
                             HStack(spacing: 12) {
                                 Text("Join Meeting")
                                 Image(systemName: "arrow.right")
