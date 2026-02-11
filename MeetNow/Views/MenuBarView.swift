@@ -121,7 +121,6 @@ struct EventRow: View {
                 Text(event.title)
                     .font(.body)
                     .fontWeight(.medium)
-                    .lineLimit(1)
                 
                 if let location = event.location, !location.isEmpty {
                     Text(location)
@@ -130,11 +129,31 @@ struct EventRow: View {
                         .lineLimit(1)
                 }
             }
+            .lineLimit(1)
             
             Spacer()
+            
+            // Link Indicator at Right Edge
+            if let url = MeetingLinkExtractor.getMeetingLink(for: event) {
+                Image(systemName: "video.fill")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                    .overlay(
+                        Button(action: { NSWorkspace.shared.open(url) }) {
+                            Color.clear
+                        }
+                        .buttonStyle(.plain)
+                        .frame(width: 40, height: 40) // Broad hit target at the edge
+                    )
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 6)
         .contentShape(Rectangle())
+        .onTapGesture {
+            if let url = MeetingLinkExtractor.getMeetingLink(for: event) {
+                NSWorkspace.shared.open(url)
+            }
+        }
     }
 }
