@@ -11,6 +11,10 @@ struct MeetNowApp: App {
         MenuBarExtra("MeetNow", systemImage: "calendar") {
             MenuBarView(eventManager: eventManager)
         }
+        
+        Settings {
+            SettingsView()
+        }
     }
 }
 
@@ -21,6 +25,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var cancellables = Set<AnyCancellable>()
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Register default defaults
+        UserDefaults.standard.register(defaults: ["reminderOffset": 5.0])
+        
         setupOverlayWindow()
         
         NotificationCenter.default.addObserver(self, selector: #selector(closeOverlay), name: Notification.Name("CloseOverlay"), object: nil)
@@ -83,9 +90,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let start = event.startDate else { return }
         let timeUntilStart = start.timeIntervalSinceNow
         
-        // Show if starts in less than 5 minutes and hasn't ended
+        // Get reminder offset from settings (default 5.0 minutes)
+        let offsetMinutes = UserDefaults.standard.double(forKey: "reminderOffset")
+        let offsetSeconds = offsetMinutes * 60
+        
+        // Show if starts in less than X minutes and hasn't ended
         let duration = event.endDate.timeIntervalSince(event.startDate)
-        if timeUntilStart < 300 && timeUntilStart > -duration {
+        if timeUntilStart < offsetSeconds && timeUntilStart > -duration {
             let contentView = OverlayView(event: event)
             overlayWindow.contentView = NSHostingView(rootView: contentView)
             overlayWindow.makeKeyAndOrderFront(nil)

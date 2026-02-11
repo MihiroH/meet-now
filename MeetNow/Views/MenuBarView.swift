@@ -27,6 +27,12 @@ struct MenuBarView: View {
             
             HStack {
                 Spacer()
+                Button("Preferences...") {
+                    NSApp.activate(ignoringOtherApps: true)
+                    NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                }
+                .keyboardShortcut(",")
+                
                 Button("Quit") {
                     NSApplication.shared.terminate(nil)
                 }
