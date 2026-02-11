@@ -3,6 +3,7 @@ import EventKit
 
 struct MenuBarView: View {
     @ObservedObject var eventManager: EventManager
+    @Environment(\.dismiss) private var dismiss
     
 
     
@@ -57,6 +58,7 @@ struct MenuBarView: View {
                 Spacer()
                 Button("Preferences...") {
                     SettingsWindowController.shared.show()
+                    dismiss()
                 }
                 .keyboardShortcut(",")
                 .focusEffectDisabled()
@@ -88,6 +90,7 @@ struct SectionHeader: View {
 
 struct EventRow: View {
     let event: EventKit.EKEvent
+    @Environment(\.dismiss) private var dismiss
     
     private let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -138,7 +141,10 @@ struct EventRow: View {
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
                     .overlay(
-                        Button(action: { NSWorkspace.shared.open(url) }) {
+                        Button(action: { 
+                            NSWorkspace.shared.open(url) 
+                            dismiss()
+                        }) {
                             Color.clear
                         }
                         .buttonStyle(.plain)
@@ -152,6 +158,7 @@ struct EventRow: View {
         .onTapGesture {
             if let url = MeetingLinkExtractor.getMeetingLink(for: event) {
                 NSWorkspace.shared.open(url)
+                dismiss()
             }
         }
     }
