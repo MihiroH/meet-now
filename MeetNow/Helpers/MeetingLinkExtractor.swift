@@ -1,5 +1,5 @@
-import Foundation
 import EventKit
+import Foundation
 
 struct MeetingLinkExtractor {
     static func meetingLink(for event: EKEvent) -> URL? {
@@ -11,46 +11,51 @@ struct MeetingLinkExtractor {
         if combinedText.count > MAX_INPUT_LENGTH {
             combinedText = String(combinedText.prefix(MAX_INPUT_LENGTH))
         }
-        
+
         if let extracted = extractURL(from: combinedText) {
             return extracted
         }
-        
+
         // 2. Fall back to dedicated URL detection.
         // If the URL field is present and matches a meeting service, return it.
         if let url = event.url, extractURL(from: url.absoluteString) != nil {
             return url
         }
-        
+
         // No confirmed meeting link found.
         return nil
     }
-    
+
     private static let meetingPatterns: [Regex<AnyRegexOutput>] = {
         let patternStrings = [
             #"https?://meet\.google\.com/[a-z]{3}-[a-z]{4}-[a-z]{3}"#,
             #"https?://([a-z0-9-]+\.)?zoom\.us/[a-z0-9/]+(?:\?[^\s.,;:)!]+)?"#,
             #"https?://teams\.microsoft\.com/l/meetup-join/[a-zA-Z0-9/%_\-=.+]+"#,
-            #"https?://([a-z0-9-]+\.)?webex\.com/[a-zA-Z0-9/%_\-+=]+"#
+            #"https?://([a-z0-9-]+\.)?webex\.com/[a-zA-Z0-9/%_\-+=]+"#,
         ]
         return patternStrings.compactMap { try? Regex($0).ignoresCase() }
     }()
-    
+
     private static func extractURL(from text: String) -> URL? {
         for pattern in meetingPatterns {
             if let match = text.firstMatch(of: pattern) {
                 var urlString = String(text[match.range])
-                
+
                 // Strip trailing punctuation that might be captured by inclusive patterns
                 while let last = urlString.last, ".,;:)]!".contains(last) {
                     urlString.removeLast()
                 }
-                
-                if let url = URL(string: urlString) {
+
+                if let url = URL(string: urlString), isSafeURL(url) {
                     return url
                 }
             }
         }
         return nil
+    }
+
+    private static func isSafeURL(_ url: URL) -> Bool {
+        guard let scheme = url.scheme?.lowercased() else { return false }
+        return ["http", "https"].contains(scheme)
     }
 }
