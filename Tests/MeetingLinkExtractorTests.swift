@@ -12,12 +12,12 @@ final class MeetingLinkExtractorTests: XCTestCase {
         XCTAssertEqual(link?.absoluteString, "https://meet.google.com/abc-defg-hij")
     }
     
-    func testExtractZoom() {
+    func testExtractZoomWithPassword() {
         let event = EKEvent(eventStore: EKEventStore())
-        event.location = "Join Zoom: https://zoom.us/j/123456789"
+        event.notes = "Zoom link: https://zoom.us/j/123456789?pwd=abc-def-123"
         
         let link = MeetingLinkExtractor.meetingLink(for: event)
-        XCTAssertEqual(link?.absoluteString, "https://zoom.us/j/123456789")
+        XCTAssertEqual(link?.absoluteString, "https://zoom.us/j/123456789?pwd=abc-def-123")
     }
     
     func testExtractTeams() {
