@@ -38,14 +38,14 @@ final class MeetingLinkExtractorTests: XCTestCase {
         XCTAssertEqual(link?.absoluteString, "https://meet.google.com/abc-defg-hij")
     }
     
-    func testFallbackToEventURLWhenNoRegexMatch() {
+    func testDoNotReturnGenericEventURL() {
         let event = EKEvent(eventStore: EKEventStore())
         event.url = URL(string: "https://generic.link/456")
         event.notes = "No meeting link here"
         
         let link = MeetingLinkExtractor.meetingLink(for: event)
-        // Should fallback to event.url even if it doesn't match regex
-        XCTAssertEqual(link?.absoluteString, "https://generic.link/456")
+        // Should return nil because the URL is generic and not a confirmed meeting link
+        XCTAssertNil(link)
     }
     
     func testExtractFromTitle() {

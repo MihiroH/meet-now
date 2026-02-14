@@ -16,8 +16,8 @@ struct MeetingLinkExtractor {
             return url
         }
         
-        // 3. Final fallback: return the URL field if present, even if it didn't match regex.
-        return event.url
+        // No confirmed meeting link found.
+        return nil
     }
     
     private static let meetingPatterns: [Regex<AnyRegexOutput>] = {
