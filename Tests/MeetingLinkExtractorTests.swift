@@ -38,13 +38,28 @@ final class MeetingLinkExtractorTests: XCTestCase {
         XCTAssertEqual(link?.absoluteString, "https://meet.google.com/abc-defg-hij")
     }
     
+    func testTrailingPunctuation() {
+        let event = EKEvent(eventStore: EKEventStore())
+        
+        // Test Zoom with trailing period
+        event.notes = "Join https://zoom.us/j/123?pwd=abc."
+        XCTAssertEqual(MeetingLinkExtractor.meetingLink(for: event)?.absoluteString, "https://zoom.us/j/123?pwd=abc")
+        
+        // Test Teams with trailing period
+        event.notes = "Teams https://teams.microsoft.com/l/meetup-join/abc."
+        XCTAssertEqual(MeetingLinkExtractor.meetingLink(for: event)?.absoluteString, "https://teams.microsoft.com/l/meetup-join/abc")
+        
+        // Test URL in parentheses
+        event.notes = "Check (https://meet.google.com/abc-defg-hij)."
+        XCTAssertEqual(MeetingLinkExtractor.meetingLink(for: event)?.absoluteString, "https://meet.google.com/abc-defg-hij")
+    }
+    
     func testDoNotReturnGenericEventURL() {
         let event = EKEvent(eventStore: EKEventStore())
         event.url = URL(string: "https://generic.link/456")
         event.notes = "No meeting link here"
         
         let link = MeetingLinkExtractor.meetingLink(for: event)
-        // Should return nil because the URL is generic and not a confirmed meeting link
         XCTAssertNil(link)
     }
     
