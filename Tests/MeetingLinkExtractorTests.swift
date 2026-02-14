@@ -78,4 +78,18 @@ final class MeetingLinkExtractorTests: XCTestCase {
         let link = MeetingLinkExtractor.meetingLink(for: event)
         XCTAssertNil(link)
     }
+
+    func testMassiveInput() {
+        let event = EKEvent(eventStore: EKEventStore())
+        let massiveString = String(repeating: "a", count: 30_000)
+        let validLink = "https://meet.google.com/abc-defg-hij"
+        
+        // Case 1: Link is within the first 20k chars (should be found)
+        event.notes = massiveString.prefix(100) + validLink + massiveString.suffix(100)
+        XCTAssertNotNil(MeetingLinkExtractor.meetingLink(for: event))
+        
+        // Case 2: Link is after the first 20k chars (should be truncated/nil)
+        event.notes = massiveString.prefix(25_000) + validLink
+        XCTAssertNil(MeetingLinkExtractor.meetingLink(for: event))
+    }
 }

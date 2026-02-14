@@ -5,7 +5,13 @@ struct MeetingLinkExtractor {
     static func meetingLink(for event: EKEvent) -> URL? {
         // 1. Attempt regex-based extraction from Title, Notes, and Location first.
         // This takes priority in case the URL field contains a non-meeting link.
-        let combinedText = "\(event.title ?? "")\n\(event.notes ?? "")\n\(event.location ?? "")"
+        // Limit input length to prevent ReDoS/performance issues on massive notes
+        let MAX_INPUT_LENGTH = 20_000
+        var combinedText = "\(event.title ?? "")\n\(event.notes ?? "")\n\(event.location ?? "")"
+        if combinedText.count > MAX_INPUT_LENGTH {
+            combinedText = String(combinedText.prefix(MAX_INPUT_LENGTH))
+        }
+        
         if let extracted = extractURL(from: combinedText) {
             return extracted
         }
