@@ -1,50 +1,61 @@
-import Foundation
 import EventKit
+import Foundation
 
 struct MeetingLinkExtractor {
-    static func getMeetingLink(for event: EKEvent) -> URL? {
-        // 1. Check the dedicated URL field first
-        if let url = event.url, isValidMeetingURL(url) {
+    static func meetingLink(for event: EKEvent) -> URL? {
+        // 1. Attempt regex-based extraction from Title, Notes, and Location first.
+        // This takes priority in case the URL field contains a non-meeting link.
+        // Limit input length to prevent ReDoS/performance issues on massive notes
+        let MAX_INPUT_LENGTH = 20_000
+        var combinedText = "\(event.title ?? "")\n\(event.notes ?? "")\n\(event.location ?? "")"
+        if combinedText.count > MAX_INPUT_LENGTH {
+            combinedText = String(combinedText.prefix(MAX_INPUT_LENGTH))
+        }
+
+        if let extracted = extractURL(from: combinedText) {
+            return extracted
+        }
+
+        // 2. Fall back to dedicated URL detection.
+        // If the URL field is present and matches a meeting service, return it.
+        if let url = event.url, extractURL(from: url.absoluteString) != nil {
             return url
         }
-        
-        // 2. Check Notes and Location
-        let combinedText = (event.notes ?? "") + "\n" + (event.location ?? "")
-        return extractURL(from: combinedText) ?? event.url // Fallback to event.url even if not "valid" meeting link
+
+        // No confirmed meeting link found.
+        return nil
     }
-    
-    private static func isValidMeetingURL(_ url: URL) -> Bool {
-        // Simple check if it looks like a meeting URL, or just return true if we want to support any URL in the URL field
-        // For now, let's trust the URL field if it's set.
-        return true 
-    }
-    
-    private static func extractURL(from text: String) -> URL? {
-        // Regex patterns for common meeting services
-        // Google Meet: meet.google.com/abc-defg-hij
-        // Zoom: zoom.us/j/123456789 or zoom.us/my/name
-        // Teams: teams.microsoft.com/l/meetup-join/...
-        // WebEx: *.webex.com/...
-        
-        let patterns = [
-            "https?:\\/\\/meet\\.google\\.com\\/[a-z]{3}-[a-z]{4}-[a-z]{3}",
-            "https?:\\/\\/([a-z0-9-]+\\.)?zoom\\.us\\/[a-z0-9\\/]+",
-            "https?:\\/\\/teams\\.microsoft\\.com\\/l\\/meetup-join\\/[a-zA-Z0-9\\/%_\\-\\=\\.\\+]+",
-            "https?:\\/\\/([a-z0-9-]+\\.)?webex\\.com\\/[a-zA-Z0-9\\/%_\\-\\=\\.\\+]+"
+
+    private static let meetingPatterns: [Regex<AnyRegexOutput>] = {
+        let patternStrings = [
+            #"https?://meet\.google\.com/[a-z]{3}-[a-z]{4}-[a-z]{3}"#,
+            #"https?://([a-z0-9-]+\.)?zoom\.us/[a-z0-9/]+(?:\?[^\s.,;:)!]+)?"#,
+            #"https?://teams\.microsoft\.com/l/meetup-join/[a-zA-Z0-9/%_\-=.+]+"#,
+            #"https?://([a-z0-9-]+\.)?webex\.com/[a-zA-Z0-9/%_\-+=]+"#,
         ]
-        
-        for pattern in patterns {
-            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
-               let match = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) {
-                
-                let range = Range(match.range, in: text)!
-                let urlString = String(text[range])
-                if let url = URL(string: urlString) {
+        return patternStrings.compactMap { try? Regex($0).ignoresCase() }
+    }()
+
+    private static func extractURL(from text: String) -> URL? {
+        for pattern in meetingPatterns {
+            if let match = text.firstMatch(of: pattern) {
+                var urlString = String(text[match.range])
+
+                // Strip trailing punctuation that might be captured by inclusive patterns
+                while let last = urlString.last, ".,;:)]!".contains(last) {
+                    urlString.removeLast()
+                }
+
+                if let url = URL(string: urlString), isSafeURL(url) {
                     return url
                 }
             }
         }
-        
         return nil
+    }
+
+    private static func isSafeURL(_ url: URL) -> Bool {
+        guard let scheme = url.scheme?.lowercased() else { return false }
+        return ["http", "https"].contains(scheme)
     }
 }

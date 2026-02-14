@@ -12,8 +12,12 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "MeetNow",
-            path: "MeetNow",
-
+            path: "MeetNow"
+        ),
+        .testTarget(
+            name: "MeetNowTests",
+            dependencies: ["MeetNow"],
+            path: "Tests"
         )
     ]
 )

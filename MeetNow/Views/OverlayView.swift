@@ -9,15 +9,19 @@ struct OverlayView: View {
     @State private var showTime = false
     @State private var showActions = false
     
-    private var timeRangeString: String {
-        guard let start = event.startDate else { return "" }
+    private static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
-        return "\(formatter.string(from: start)) - \(formatter.string(from: event.endDate))"
+        return formatter
+    }()
+    
+    private var timeRangeString: String {
+        let formatter = Self.timeFormatter
+        return "\(formatter.string(from: event.startDate)) - \(formatter.string(from: event.endDate))"
     }
 
     private var meetingURL: URL? {
-        MeetingLinkExtractor.getMeetingLink(for: event)
+        MeetingLinkExtractor.meetingLink(for: event)
     }
     
     var body: some View {
@@ -82,7 +86,7 @@ struct OverlayView: View {
                     if let url = meetingURL {
                         Button(action: { 
                             NSWorkspace.shared.open(url) 
-                            NotificationCenter.default.post(name: Notification.Name("CloseOverlay"), object: nil)
+                            NotificationCenter.default.post(name: .closeOverlay, object: nil)
                         }) {
                             HStack(spacing: 12) {
                                 Text("Join Meeting")
@@ -101,7 +105,7 @@ struct OverlayView: View {
                     
                     if meetingURL == nil {
                         Button(action: {
-                            NotificationCenter.default.post(name: Notification.Name("CloseOverlay"), object: nil)
+                            NotificationCenter.default.post(name: .closeOverlay, object: nil)
                         }) {
                             Text("Dismiss")
                                 .font(.system(size: 18, weight: .bold))
@@ -116,7 +120,7 @@ struct OverlayView: View {
                         .focusEffectDisabled()
                     } else {
                         Button(action: {
-                            NotificationCenter.default.post(name: Notification.Name("CloseOverlay"), object: nil)
+                            NotificationCenter.default.post(name: .closeOverlay, object: nil)
                         }) {
                             Text("Dismiss")
                                 .font(.system(size: 14, weight: .bold))
@@ -144,35 +148,5 @@ struct OverlayView: View {
         withAnimation(spring.delay(0.2)) { showTitle = true }
         withAnimation(spring.delay(0.3)) { showTime = true }
         withAnimation(spring.delay(0.4)) { showActions = true }
-    }
-}
-
-// Re-using the tactile button interaction
-struct ProButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(.easeOut(duration: 0.1), value: configuration.isPressed)
-            .opacity(configuration.isPressed ? 0.9 : 1.0)
-    }
-}
-
-
-// Helper for Visual Effect Blur (NSVisualEffectView wrapper)
-struct VisualEffectBlur: NSViewRepresentable {
-    var material: NSVisualEffectView.Material
-    var blendingMode: NSVisualEffectView.BlendingMode
-    
-    func makeNSView(context: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
-        view.material = material
-        view.blendingMode = blendingMode
-        view.state = .active
-        return view
-    }
-    
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
-        nsView.material = material
-        nsView.blendingMode = blendingMode
     }
 }
