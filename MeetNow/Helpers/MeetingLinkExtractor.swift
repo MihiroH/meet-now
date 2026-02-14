@@ -32,7 +32,7 @@ struct MeetingLinkExtractor {
     
     private static func extractURL(from text: String) -> URL? {
         for pattern in meetingPatterns {
-            if var match = text.firstMatch(of: pattern) {
+            if let match = text.firstMatch(of: pattern) {
                 var urlString = String(text[match.range])
                 
                 // Strip trailing punctuation that might be captured by inclusive patterns
