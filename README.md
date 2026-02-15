@@ -23,19 +23,14 @@
 ### Prerequisites
 
 - macOS 14.0 or later.
-- Xcode 15.0+ (if building from source).
+- Xcode 15.0+ (required for building the App Bundle).
 
-### Running from Source
+### Development (Xcode)
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/MihiroH/meet-now.git
-   cd meet-now
-   ```
-2. Build and run the SPM package:
-   ```bash
-   swift run
-   ```
+To fully support macOS permissions (Calendar access) and the Menu Bar UI, it is recommended to run the app via Xcode:
+
+1. Open the project folder in **Xcode**.
+2. Press `Cmd + R` to Build and Run.
 
 ## 🛠 Tech Stack
 
