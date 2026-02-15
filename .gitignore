@@ -20,3 +20,6 @@ xcuserdata/
 
 # VS Code
 .vscode/
+
+# Build artifacts
+*.profraw
