@@ -2,10 +2,25 @@ import SwiftUI
 
 struct SettingsView: View {
     @AppStorage("reminderOffset") private var reminderOffset: Double = 5.0
-    
+    @StateObject private var launchAtLogin = LaunchAtLoginManager()
+
     var body: some View {
         Form {
             Section {
+                Toggle(isOn: $launchAtLogin.isEnabled) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "power")
+                            .font(.title2)
+                            .foregroundColor(.orange)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Launch at Login")
+                                .font(.headline)
+                        }
+                    }
+                }
+                .toggleStyle(.switch)
+
                 LabeledContent {
                     Picker("", selection: $reminderOffset) {
                         Text("At time of event").tag(0.0)
@@ -22,7 +37,7 @@ struct SettingsView: View {
                         Image(systemName: "timer")
                             .font(.title2)
                             .foregroundColor(.accentColor)
-                        
+
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Reminder Time")
                                 .font(.headline)
@@ -30,8 +45,10 @@ struct SettingsView: View {
                     }
                 }
             } footer: {
-                Text("MeetNow will show a full-screen overlay this many minutes before your meeting starts to make sure you're never late.")
-                    .padding(.top, 8)
+                Text(
+                    "MeetNow will show a full-screen overlay this many minutes before your meeting starts to make sure you're never late."
+                )
+                .padding(.top, 8)
             }
         }
         .formStyle(.grouped)
