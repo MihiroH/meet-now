@@ -20,17 +20,34 @@
 
 ## 🚀 Getting Started
 
-### Prerequisites
-
-- macOS 14.0 or later.
-- Xcode 15.0+ (required for building the App Bundle).
-
 ### Development (Xcode)
 
 To fully support macOS permissions (Calendar access) and the Menu Bar UI, it is recommended to run the app via Xcode:
 
 1. Open the project folder in **Xcode**.
 2. Press `Cmd + R` to Build and Run.
+
+### Manual Installation (via Xcode Build)
+
+If you prefer to install the app manually after building in Xcode:
+
+1.  **Build**: In Xcode, press `Cmd + B`.
+2.  **Locate Binary**: Go to **Product > Show Build Folder in Finder** and navigate into `Build/Products/Debug`.
+3.  **Install**: Run this command in your terminal (drag the `MeetNow` file from Finder at the end):
+    ```bash
+    ./scripts/install.sh [drag the binary here]
+    ```
+    *This automatically creates the `/Applications/MeetNow.app` bundle and sets everything up.*
+4.  **Open**: Right-click `/Applications/MeetNow.app` and select **Open** for the first time.
+
+### CLI Usage
+
+MeetNow can be managed entirely from the terminal:
+
+- **Launch the app**: `open -a MeetNow`
+- **Quit the app**: `pkill MeetNow`
+- **View reminder setting**: `defaults read com.meetnow.app reminderOffset`
+- **Update reminder setting** (e.g., to 10m): `defaults write com.meetnow.app reminderOffset -float 10.0`
 
 ## 🛠 Tech Stack
 
