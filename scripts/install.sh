@@ -22,5 +22,9 @@ chmod +x "$APP_PATH/Contents/MacOS/MeetNow"
 # Copy Info.plist
 cp "$(dirname "$0")/../MeetNow/Info.plist" "$APP_PATH/Contents/Info.plist"
 
+# Copy Icon
+mkdir -p "$APP_PATH/Contents/Resources"
+cp "$(dirname "$0")/../MeetNow/AppIcon.icns" "$APP_PATH/Contents/Resources/AppIcon.icns"
+
 echo "✅ Installed successfully! You can now run 'open -a MeetNow'."
 echo "💡 Note: If macOS blocks the first run, right-click $APP_PATH and select 'Open'."

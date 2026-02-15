@@ -20,25 +20,21 @@
 
 ## 🚀 Getting Started
 
-### Development (Xcode)
+### Development
 
 To fully support macOS permissions (Calendar access) and the Menu Bar UI, it is recommended to run the app via Xcode:
 
 1. Open the project folder in **Xcode**.
 2. Press `Cmd + R` to Build and Run.
 
-### Manual Installation (via Xcode Build)
+### Manual Installation
 
-If you prefer to install the app manually after building in Xcode:
-
-1.  **Build**: In Xcode, press `Cmd + B`.
-2.  **Locate Binary**: Go to **Product > Show Build Folder in Finder** and navigate into `Build/Products/Debug`.
-3.  **Install**: Run this command in your terminal (drag the `MeetNow` file from Finder at the end):
+1.  **Build and Install**: Run this command in your terminal from the project root:
     ```bash
-    ./scripts/install.sh [drag the binary here]
+    swift build -c release && ./scripts/install.sh .build/release/MeetNow
     ```
-    *This automatically creates the `/Applications/MeetNow.app` bundle and sets everything up.*
-4.  **Open**: Right-click `/Applications/MeetNow.app` and select **Open** for the first time.
+    *This automatically builds an optimized release version and installs it to `/Applications/MeetNow.app`.*
+2.  **Open**: Right-click `/Applications/MeetNow.app` and select **Open** for the first time.
 
 ### CLI Usage
 

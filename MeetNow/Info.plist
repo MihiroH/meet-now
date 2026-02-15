@@ -18,6 +18,8 @@
     <string>MeetNow needs access to your calendar to show upcoming meetings.</string>
     <key>NSCalendarsFullAccessUsageDescription</key>
     <string>MeetNow needs full access to your calendar to show upcoming meetings.</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>LSUIElement</key>
     <true/>
 </dict>
