@@ -61,9 +61,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             Timer.publish(every: 10, on: .main, in: .common).autoconnect().prepend(Date())
         )
         .map { [weak self] events, _ -> EKEvent? in
+            guard let self = self else { return events.first }
+            
             // Prune dismissed IDs for events that are no longer in today's list
             let currentIDs = Set(events.compactMap(\.eventIdentifier))
-            self?.dismissedEventIdentifiers.formIntersection(currentIDs)
+            self.dismissedEventIdentifiers.formIntersection(currentIDs)
             
             // Back-to-back priority logic:
             // Find an event that hasn't been dismissed and is within its reminder window.
@@ -73,7 +75,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Priority 1: Events that haven't started yet but are within the reminder window.
             if let upcoming = events.first(where: { event in
                 let timeUntilStart = event.startDate.timeIntervalSinceNow
-                return timeUntilStart > 0 && timeUntilStart < offsetSeconds && !dismissedEventIdentifiers.contains(event.eventIdentifier)
+                return timeUntilStart > 0 && timeUntilStart < offsetSeconds && !self.dismissedEventIdentifiers.contains(event.eventIdentifier)
             }) {
                 return upcoming
             }
@@ -82,7 +84,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if let active = events.first(where: { event in
                 let timeUntilStart = event.startDate.timeIntervalSinceNow
                 let duration = event.endDate.timeIntervalSince(event.startDate)
-                return timeUntilStart <= 0 && timeUntilStart > -duration && !dismissedEventIdentifiers.contains(event.eventIdentifier)
+                return timeUntilStart <= 0 && timeUntilStart > -duration && !self.dismissedEventIdentifiers.contains(event.eventIdentifier)
             }) {
                 return active
             }
