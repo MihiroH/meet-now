@@ -93,10 +93,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let duration = event.endDate.timeIntervalSince(event.startDate)
         if timeUntilStart < offsetSeconds && timeUntilStart > -duration {
             if !overlayWindow.isVisible || currentlyShownEventID != event.eventIdentifier {
+                // Determine the active screen (where the mouse is)
+                let mouseLocation = NSEvent.mouseLocation
+                let activeScreen = NSScreen.screens.first { NSMouseInRect(mouseLocation, $0.frame, false) } ?? NSScreen.main
+                
+                if let screen = activeScreen {
+                    overlayWindow.setFrame(screen.visibleFrame, display: true)
+                }
+
                 let contentView = OverlayView(event: event)
                 overlayWindow.contentView = NSHostingView(rootView: contentView)
                 overlayWindow.makeKeyAndOrderFront(nil)
-                NSApp.activate()
+                NSApp.activate(ignoringOtherApps: true)
                 currentlyShownEventID = event.eventIdentifier
             }
         } else {
