@@ -92,7 +92,7 @@ struct MenuButton: View {
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
             .background(isHovered ? Color.accentColor : Color.clear)
-            .cornerRadius(5)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
             .padding(.horizontal, 6)
         }
         .buttonStyle(.plain)
