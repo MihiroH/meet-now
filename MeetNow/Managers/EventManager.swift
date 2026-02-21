@@ -4,7 +4,7 @@ import Combine
 
 class EventManager: ObservableObject {
     static let shared = EventManager()
-    private let store = EKEventStore()
+    private var store: EKEventStore? // Only access on backgroundQueue
     @Published var upcomingEvents: [EKEvent] = []
     
     var nextEvent: EKEvent? {
@@ -14,7 +14,6 @@ class EventManager: ObservableObject {
     @Published var hasAccess: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
-    
     private let backgroundQueue = DispatchQueue(label: "com.meetnow.eventfetch", qos: .userInitiated)
     
     init() {
@@ -22,34 +21,44 @@ class EventManager: ObservableObject {
     }
     
     func requestAccess() {
-        store.requestFullAccessToEvents { [weak self] granted, error in
-            DispatchQueue.main.async {
-                self?.hasAccess = granted
-                if granted {
-                    self?.fetchEvents()
-                    self?.observeStoreChanges()
+        backgroundQueue.async { [weak self] in
+            let newStore = EKEventStore()
+            self?.store = newStore
+            
+            newStore.requestFullAccessToEvents { [weak self] granted, error in
+                DispatchQueue.main.async {
+                    self?.hasAccess = granted
+                    if granted {
+                        self?.fetchEvents()
+                        self?.observeStoreChanges()
+                    }
                 }
             }
         }
     }
     
     private func observeStoreChanges() {
-        NotificationCenter.default.publisher(for: .EKEventStoreChanged, object: store)
-            .debounce(for: .milliseconds(500), scheduler: backgroundQueue)
-            .sink { [weak self] _ in
-                self?.fetchEvents()
-            }
-            .store(in: &cancellables)
+        backgroundQueue.async { [weak self] in
+            guard let self = self, let store = self.store else { return }
+            
+            NotificationCenter.default.publisher(for: .EKEventStoreChanged, object: store)
+                .debounce(for: .milliseconds(500), scheduler: self.backgroundQueue)
+                .sink { [weak self] _ in
+                    self?.fetchEvents()
+                }
+                .store(in: &self.cancellables)
+        }
     }
     
     func fetchEvents() {
         backgroundQueue.async { [weak self] in
-            guard let self = self else { return }
+            guard let self = self, let store = self.store else { return }
+            
             let now = Date()
             guard let end = Calendar.current.date(byAdding: .day, value: 1, to: now) else { return }
             
-            let predicate = self.store.predicateForEvents(withStart: now, end: end, calendars: nil)
-            let events = self.store.events(matching: predicate)
+            let predicate = store.predicateForEvents(withStart: now, end: end, calendars: nil)
+            let events = store.events(matching: predicate)
             
             let upcoming = events
                 .filter { !$0.isAllDay && $0.endDate > now }
