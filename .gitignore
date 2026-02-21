@@ -23,3 +23,6 @@ xcuserdata/
 
 # Build artifacts
 *.profraw
+
+.gemini/
+gha-creds-*.json
