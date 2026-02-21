@@ -14,7 +14,7 @@ class SettingsWindowController: NSObject {
             )
             window.center()
             window.level = .floating
-            window.title = "Preferences"
+            window.title = "Settings"
             window.contentView = NSHostingView(rootView: SettingsView())
             window.isReleasedWhenClosed = false
             self.window = window
