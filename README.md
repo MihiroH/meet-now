@@ -2,9 +2,8 @@
 
 **MeetNow** is a minimalist macOS menu-bar application designed to ensure you never miss a meeting. It monitors your calendar and displays a high-impact, full-screen overlay minutes before your next meeting starts, providing a single, focused button to join immediately.
 
-![MeetNow Menu Bar](https://img.shields.io/badge/Platform-macOS%2014%2B-blue)
-![Swift](https://img.shields.io/badge/Swift-5.9-orange)
-![SPM](https://img.shields.io/badge/Package-SPM-red)
+<img src="./assets/menubar.png" width="300" />
+<img src="./assets/overlay.png" />
 
 ## ✨ Features
 
