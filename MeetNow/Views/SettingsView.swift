@@ -55,7 +55,3 @@ struct SettingsView: View {
         .frame(width: 400)
     }
 }
-
-#Preview {
-    SettingsView()
-}
