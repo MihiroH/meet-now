@@ -62,16 +62,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
         .map { [weak self] events, _ -> EKEvent? in
             guard let self = self else { return events.first }
-            
+
             // Prune dismissed IDs for events that are no longer in today's list
             let currentIDs = Set(events.compactMap(\.eventIdentifier))
             self.dismissedEventIdentifiers.formIntersection(currentIDs)
-            
+
             // Back-to-back priority logic:
             // Find an event that hasn't been dismissed and is within its reminder window.
             let offsetMinutes = UserDefaults.standard.double(forKey: "reminderOffset")
             let offsetSeconds = offsetMinutes * 60
-            
+
             // Priority 1: Events that haven't started yet but are within the reminder window.
             if let upcoming = events.first(where: { event in
                 let timeUntilStart = event.startDate.timeIntervalSinceNow
@@ -79,7 +79,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }) {
                 return upcoming
             }
-            
+
             // Priority 2: Currently active event (started but not yet finished), if not dismissed.
             if let active = events.first(where: { event in
                 let timeUntilStart = event.startDate.timeIntervalSinceNow
@@ -88,7 +88,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }) {
                 return active
             }
-            
+
             return events.first
         }
         .sink { [weak self] event in
@@ -121,7 +121,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 // Determine the active screen (where the mouse is)
                 let mouseLocation = NSEvent.mouseLocation
                 let activeScreen = NSScreen.screens.first { NSMouseInRect(mouseLocation, $0.frame, false) } ?? NSScreen.main
-                
+
                 if let screen = activeScreen {
                     overlayWindow.setFrame(screen.visibleFrame, display: true)
                 }
